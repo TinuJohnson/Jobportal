@@ -1,0 +1,28 @@
+<!-- scrape_jobs.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h4>Scrape Jobs from External Sources</h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Job Keyword</label>
+                        <input type="text" name="keyword" class="form-control" value="python developer" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Location (optional)</label>
+                        <input type="text" name="location" class="form-control" placeholder="New York, NY">
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Scrape Jobs</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

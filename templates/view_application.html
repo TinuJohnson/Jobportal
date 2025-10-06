@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block title %}Applications for {{ job.title }} - Job Portal{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2>Applications for: {{ job.title }}</h2>
+                <p class="text-muted">{{ job.company }} - {{ applications.count }} applications</p>
+            </div>
+            <a href="{% url 'dashboard' %}" class="btn btn-outline-primary">Back to Dashboard</a>
+        </div>
+
+        {% if applications %}
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Applicant</th>
+                                <th>Applied Date</th>
+                                <th>Cover Letter</th>
+                                <th>Resume</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for application in applications %}
+                            <tr>
+                                <td>
+                                    <strong>{{ application.seeker.username }}</strong>
+                                    <br>
+                                    <small class="text-muted">{{ application.seeker.email }}</small>
+                                </td>
+                                <td>{{ application.applied_at|date:"M d, Y" }}</td>
+                                <td>
+                                    {% if application.cover_letter %}
+                                        <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#coverLetterModal{{ application.id }}">
+                                            View
+                                        </button>
+                                    {% else %}
+                                        <span class="text-muted">No cover letter</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{{ application.resume.url }}" class="btn btn-sm btn-outline-success" target="_blank">
+                                        Download
+                                    </a>
+                                </td>
+                                <td>
+                                    <span class="badge bg-warning text-dark">Pending Review</span>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-success">Shortlist</button>
+                                        <button class="btn btn-outline-danger">Reject</button>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <!-- Cover Letter Modal -->
+                            <div class="modal fade" id="coverLetterModal{{ application.id }}" tabindex="-1">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Cover Letter - {{ application.seeker.username }}</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p>{{ application.cover_letter|linebreaks }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <h4 class="text-muted">No applications yet</h4>
+                <p class="text-muted">Applications for this job will appear here when job seekers apply.</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

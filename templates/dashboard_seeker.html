@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Job Seeker{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>My Dashboard</h2>
+            <a href="{% url 'job_list' %}" class="btn btn-primary">Browse Jobs</a>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">My Applications</h5>
+            </div>
+            <div class="card-body">
+                {% if applications %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Job Title</th>
+                                    <th>Company</th>
+                                    <th>Applied Date</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for application in applications %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'job_detail' application.job.id %}">
+                                            {{ application.job.title }}
+                                        </a>
+                                    </td>
+                                    <td>{{ application.job.company }}</td>
+                                    <td>{{ application.applied_at|date:"M d, Y" }}</td>
+                                    <td>
+                                        <span class="badge bg-warning text-dark">Pending</span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <p class="text-muted">You haven't applied to any jobs yet.</p>
+                        <a href="{% url 'job_list' %}" class="btn btn-primary">Browse Available Jobs</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Profile Summary</h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-3">
+                    <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width: 60px; height: 60px;">
+                        <h4>{{ user.username|first|upper }}</h4>
+                    </div>
+                    <h5>{{ user.username }}</h5>
+                    <p class="text-muted">Job Seeker</p>
+                </div>
+                <div class="row text-center">
+                    <div class="col-6">
+                        <h4>{{ applications.count }}</h4>
+                        <p class="text-muted small">Applications</p>
+                    </div>
+                    <div class="col-6">
+                        <h4>0</h4>
+                        <p class="text-muted small">Interviews</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-body">
+                <h6>Quick Actions</h6>
+                <div class="d-grid gap-2">
+                    <a href="{% url 'job_list' %}" class="btn btn-outline-primary">Search Jobs</a>
+                    <a href="#" class="btn btn-outline-secondary">Update Profile</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

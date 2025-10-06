@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+
+{% block title %}Indeed Jobs - Job Portal{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1>💼 Available Jobs</h1>
+                </div>
+                <span class="badge bg-warning text-dark fs-6">Live Data</span>
+            </div>
+
+            <!-- Search Box -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="get" class="row">
+                        <div class="col-md-8">
+                            <input type="text" name="search" class="form-control form-control-lg" 
+                                   placeholder="Search jobs by title or company..." 
+                                   value="{{ search }}">
+                        </div>
+                        <div class="col-md-4">
+                            <button type="submit" class="btn btn-primary btn-lg w-100">
+                                🔍 Search Jobs
+                            </button>
+                        </div>
+                    </form>
+                    {% if search %}
+                    <div class="mt-2">
+                        <a href="{% url 'job_list' %}" class="btn btn-outline-secondary btn-sm">
+                            🗑️ Clear Search
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Messages -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- Jobs List -->
+            {% if jobs %}
+                {% for job in jobs %}
+                <div class="card mb-3 border-warning">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-9">
+                                <h4 class="card-title text-primary">{{ job.title }}</h4>
+                                <h5 class="card-subtitle mb-3 text-success">
+                                    🏢 {{ job.company }}
+                                </h5>
+                                
+                                <p class="card-text text-muted mb-3">
+                                    {{ job.description }}
+                                </p>
+                                
+                                <div class="row text-muted">
+                                    <div class="col-md-4">
+                                        <strong>📍 Location:</strong><br>
+                                        {{ job.location }}
+                                    </div>
+                                    <div class="col-md-4">
+                                        <strong>💰 Salary:</strong><br>
+                                        {{ job.salary }}
+                                    </div>
+                                    <div class="col-md-4">
+                                        <strong>🔗 Source:</strong><br>
+                                        <span class="badge bg-warning text-dark">{{ job.employer }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 text-center">
+                                <div class="d-grid gap-2">
+                                    {% if user.is_authenticated %}
+                                        {% if job.id in applied_jobs %}
+                                            <button class="btn btn-success btn-lg" disabled>
+                                                ✅ Applied
+                                            </button>
+                                            <small class="text-muted">
+                                                Application submitted
+                                            </small>
+                                        {% else %}
+                                            <form method="post" action="{% url 'apply_job' job.id %}">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-warning btn-lg">
+                                                    ➡️ Apply Now
+                                                </button>
+                                            </form>
+                                            <small class="text-muted">
+                                                Submit your application
+                                            </small>
+                                        {% endif %}
+                                    {% else %}
+                                        <a href="{% url 'login' %}?next={{ request.path }}" 
+                                           class="btn btn-warning btn-lg">
+                                            🔒 Login to Apply
+                                        </a>
+                                        <small class="text-muted">
+                                            Please login to apply
+                                        </small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <h3>😔 No Jobs Found</h3>
+                        <p class="text-muted">
+                            Try adjusting your search or check back later.
+                        </p>
+                        <a href="{% url 'job_list' %}" class="btn btn-primary">
+                            View All Jobs
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Success Modal -->
+{% if request.GET.application == 'success' %}
+<div class="modal fade show" id="successModal" tabindex="-1" style="display: block; background: rgba(0,0,0,0.5);">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">✅ Application Submitted</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" onclick="closeModal()"></button>
+            </div>
+            <div class="modal-body">
+                <p>Your application has been successfully submitted!</p>
+                <p>You can view your applications in your profile.</p>
+            </div>
+            <div class="modal-footer">
+                <a href="{% url 'profile' %}" class="btn btn-primary">View Profile</a>
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function closeModal() {
+        document.getElementById('successModal').style.display = 'none';
+        // Remove the success parameter from URL without reloading
+        const url = new URL(window.location);
+        url.searchParams.delete('application');
+        window.history.replaceState({}, '', url);
+    }
+</script>
+{% endif %}
+{% endblock %}

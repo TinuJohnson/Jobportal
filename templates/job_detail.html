@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ job.title }} - Job Portal{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-4">
+                    <div>
+                        <h2 class="card-title">{{ job.title }}</h2>
+                        <h4 class="text-primary">{{ job.company }}</h4>
+                    </div>
+                    <div class="text-end">
+                        <small class="text-muted d-block">Posted {{ job.created_at|timesince }} ago</small>
+                        {% if user.is_authenticated and user.is_employer and job.employer == user %}
+                            <span class="badge bg-secondary">Your Job Posting</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="fw-bold me-2">📍 Location:</span>
+                            <span>{{ job.location }}</span>
+                        </div>
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="fw-bold me-2">💰 Salary:</span>
+                            <span>{{ job.salary }}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="fw-bold me-2">🏷️ Category:</span>
+                            <span>{{ job.category }}</span>
+                        </div>
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="fw-bold me-2">👥 Employer:</span>
+                            <span>{{ job.employer.username }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <h5>Job Description</h5>
+                    <div class="border rounded p-3 bg-light">
+                        {{ job.description|linebreaks }}
+                    </div>
+                </div>
+
+                {% if user.is_authenticated and user.is_employer and job.employer == user %}
+                <div class="alert alert-info">
+                    <h6>Employer Actions</h6>
+                    <div class="btn-group">
+                        <a href="{% url 'view_applications' job.id %}" class="btn btn-outline-primary">
+                            View Applications ({{ job.applications.count }})
+                        </a>
+                        <a href="#" class="btn btn-outline-secondary">Edit Job</a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Apply for this Job</h5>
+                
+                {% if user.is_authenticated %}
+                    {% if user.is_seeker %}
+                        {% if has_applied %}
+                            <div class="alert alert-warning">
+                                <p>You have already applied for this position.</p>
+                            </div>
+                            <a href="{% url 'dashboard' %}" class="btn btn-outline-primary w-100">View My Applications</a>
+                        {% else %}
+                            <p>Ready to apply for this position?</p>
+                            <a href="{% url 'apply_job' job.id %}" class="btn btn-success w-100">Apply Now</a>
+                        {% endif %}
+                    {% else %}
+                        <div class="alert alert-info">
+                            <p>Employers cannot apply for jobs. Switch to a job seeker account to apply.</p>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <p>Please login as a job seeker to apply for this position.</p>
+                    <a href="{% url 'login' %}?next={% url 'apply_job' job.id %}" class="btn btn-primary w-100 mb-2">Login to Apply</a>
+                    <a href="{% url 'register' %}?role=seeker" class="btn btn-outline-primary w-100">Register as Job Seeker</a>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-body">
+                <h6>Job Summary</h6>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><strong>Company:</strong> {{ job.company }}</li>
+                    <li class="mb-2"><strong>Location:</strong> {{ job.location }}</li>
+                    <li class="mb-2"><strong>Salary:</strong> {{ job.salary }}</li>
+                    <li class="mb-2"><strong>Category:</strong> {{ job.category }}</li>
+                    <li class="mb-2"><strong>Posted:</strong> {{ job.created_at|date:"M d, Y" }}</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
