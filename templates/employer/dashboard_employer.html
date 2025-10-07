@@ -5,6 +5,10 @@
 {% block content %}
 <div class="row">
     <div class="col-md-8">
+        <div class="d-flex justify-content-end align-items-center mb-4">
+            
+           
+        </div>
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2>Employer Dashboard</h2>
             <a href="{% url 'post_job' %}" class="btn btn-primary">Post New Job</a>
@@ -38,7 +42,7 @@
                                     <td>{{ job.created_at|date:"M d, Y" }}</td>
                                     <td>
                                         <a href="{% url 'view_applications' job.id %}" class="btn btn-sm btn-outline-primary">View Apps</a>
-                                        <a href="#" class="btn btn-sm btn-outline-secondary">Edit</a>
+                                       
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -56,6 +60,13 @@
     </div>
 
     <div class="col-md-4">
+        <div class="d-flex justify-content-end align-items-center mb-4">
+            
+            <form method="post" action="{% url 'logout' %}" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger text-white fs-6">Logout</button>
+            </form>
+        </div>
         <div class="card">
             <div class="card-header">
                 <h5 class="card-title mb-0">Company Overview</h5>
@@ -69,14 +80,11 @@
                     <p class="text-muted">Employer</p>
                 </div>
                 <div class="row text-center">
-                    <div class="col-6">
+                    <div class="col-12">
                         <h4>{{ jobs.count }}</h4>
                         <p class="text-muted small">Active Jobs</p>
                     </div>
-                    <div class="col-6">
-                        <h4>{{ total_applications }}</h4>
-                        <p class="text-muted small">Total Applications</p>
-                    </div>
+                    
                 </div>
             </div>
         </div>

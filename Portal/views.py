@@ -9,15 +9,9 @@ from .forms import JobForm, ApplicationForm, UserRegistrationForm
 
 
 def home(request):
-    # You can either show the job list or a dedicated landing page
-    # Option 1: Redirect to job list
-    # return redirect('job_list')
-
-    # Option 2: Show a dedicated landing page (create home.html)
     return render(request, "home.html")
 
 
-# Authentication Views
 def register(request):
     if request.method == "POST":
         form = UserRegistrationForm(request.POST)
@@ -50,31 +44,18 @@ def user_logout(request):
     return redirect("home")
 
 
-# Dashboard
 @login_required
 def dashboard(request):
     if request.user.is_seeker():
         applications = Application.objects.filter(seeker=request.user)
-        return render(request, "dashboard_seeker.html", {"applications": applications})
+        return render(
+            request, "seeker/dashboard_seeker.html", {"applications": applications}
+        )
     else:
         jobs = Job.objects.filter(employer=request.user)
-        return render(request, "dashboard_employer.html", {"jobs": jobs})
+        return render(request, "employer/dashboard_employer.html", {"jobs": jobs})
 
 
-@login_required
-@user_passes_test(lambda u: u.is_employer())
-def dashboard_employer(request):
-    jobs = Job.objects.filter(employer=request.user)
-    total_applications = Application.objects.filter(job__employer=request.user).count()
-
-    return render(
-        request,
-        "dashboard_employer.html",
-        {"jobs": jobs, "total_applications": total_applications},
-    )
-
-
-# Job Views
 @login_required
 @user_passes_test(lambda u: u.is_employer())
 def post_job(request):
@@ -88,34 +69,94 @@ def post_job(request):
             return redirect("dashboard")
     else:
         form = JobForm()
-    return render(request, "post_job.html", {"form": form})
+    return render(request, "employer/post_job.html", {"form": form})
 
 
 @login_required
-@user_passes_test(lambda u: u.is_superuser)
-def admin_dashboard(request):
-    users = User.objects.all()
-    jobs = Job.objects.all()
-    applications = Application.objects.all()
-    employers = User.objects.filter(role="employer")
+def manage_jobs(request):
+    # Only show jobs posted by the current user
+    jobs = Job.objects.filter(employer=request.user).order_by("-created_at")
+    return render(request, "employer/manage_jobs.html", {"jobs": jobs})
+
+
+@login_required
+def view_applicants(request, job_id):
+    job = get_object_or_404(Job, id=job_id, employer=request.user)
+    applications = Application.objects.filter(job=job).select_related("seeker")
 
     return render(
         request,
-        "admin_dashboard.html",
-        {
-            "users": users,
-            "jobs": jobs,
-            "applications": applications,
-            "employers": employers,
-        },
+        "employer/view_applicants.html",
+        {"job": job, "applications": applications},
     )
 
 
 @login_required
-@user_passes_test(lambda u: u.is_employer())
-def manage_jobs(request):
-    jobs = Job.objects.filter(employer=request.user)
-    return render(request, "manage_jobs.html", {"jobs": jobs})
+def update_application_status(request, application_id, status):
+    application = get_object_or_404(Application, id=application_id)
+
+    # Ensure the current user owns the job
+    if application.job.employer != request.user:
+        raise Http404("Application not found")
+
+    valid_statuses = ["pending", "reviewed", "shortlisted", "accepted", "rejected"]
+    if status in valid_statuses:
+        application.status = status
+        application.save()
+        messages.success(request, f"Application status updated to {status}.")
+    else:
+        messages.error(request, "Invalid status.")
+
+    return redirect("seeker/view_applications", job_id=application.job.id)
+
+
+@login_required
+def update_application_status(request, application_id, status):
+    application = get_object_or_404(Application, id=application_id)
+
+    # Ensure the current user owns the job
+    if application.job.employer != request.user:
+        raise Http404("Application not found")
+
+    valid_statuses = ["pending", "reviewed", "accepted", "rejected"]
+    if status in valid_statuses:
+        application.status = status
+        application.save()
+        messages.success(request, f"Application status updated to {status}.")
+    else:
+        messages.error(request, "Invalid status.")
+
+    return redirect("seeker/view_applications", job_id=application.job.id)
+
+
+@login_required
+def edit_job(request, job_id):
+    job = get_object_or_404(Job, id=job_id, employer=request.user)
+
+    if request.method == "POST":
+        form = JobForm(request.POST, instance=job)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Job updated successfully!")
+            return redirect("manage_jobs")
+    else:
+        form = JobForm(instance=job)
+
+    return render(request, "employer/edit_job.html", {"form": form, "job": job})
+
+
+@login_required
+def delete_job(request, job_id):
+    job = get_object_or_404(Job, id=job_id, employer=request.user)
+
+    if request.method == "POST":
+        job_title = job.title
+        job.delete()
+        messages.success(request, f'Job "{job_title}" has been deleted successfully.')
+        return redirect("manage_jobs")
+
+    # If not POST, redirect to manage jobs
+    return redirect("manage_jobs")
 
 
 def job_list(request):
@@ -137,31 +178,9 @@ def job_list(request):
 
     return render(
         request,
-        "job_list.html",
+        "seeker/job_list.html",
         {"jobs": jobs, "search": search, "applied_jobs": applied_jobs},
     )
-
-
-@login_required
-def apply_job(request, job_id):
-    job = get_object_or_404(Job, id=job_id)
-
-    # Check if already applied
-    if Application.objects.filter(
-        seeker=request.user, job=job
-    ).exists():  # Changed from 'user' to 'seeker'
-        messages.warning(request, "You have already applied for this job.")
-        return redirect("job_list")
-
-    # Create application
-    Application.objects.create(
-        seeker=request.user,  # Changed from 'user' to 'seeker'
-        job=job,
-        status="applied",
-    )
-
-    messages.success(request, f"Successfully applied for {job.title} at {job.company}!")
-    return redirect("job_list" + "?application=success")
 
 
 def job_detail(request, job_id):
@@ -170,7 +189,9 @@ def job_detail(request, job_id):
     if request.user.is_authenticated and request.user.is_seeker():
         has_applied = Application.objects.filter(job=job, seeker=request.user).exists()
 
-    return render(request, "job_detail.html", {"job": job, "has_applied": has_applied})
+    return render(
+        request, "seeker/job_detail.html", {"job": job, "has_applied": has_applied}
+    )
 
 
 # Application Views
@@ -196,7 +217,7 @@ def apply_job(request, job_id):
     else:
         form = ApplicationForm()
 
-    return render(request, "apply_job.html", {"form": form, "job": job})
+    return render(request, "seeker/apply_job.html", {"form": form, "job": job})
 
 
 @login_required
@@ -204,21 +225,12 @@ def apply_job(request, job_id):
 def view_applications(request, job_id):
     job = get_object_or_404(Job, id=job_id, employer=request.user)
     applications = job.applications.all()
-    return render(
-        request, "view_applications.html", {"job": job, "applications": applications}
-    )
-
-
-# Admin Views (simplified)
-@login_required
-@user_passes_test(lambda u: u.is_superuser)
-def admin_dashboard(request):
-    users = User.objects.all()
-    jobs = Job.objects.all()
-    applications = Application.objects.all()
 
     return render(
         request,
-        "admin_dashboard.html",
-        {"users": users, "jobs": jobs, "applications": applications},
+        "seeker/view_applications.html",
+        {
+            "job": job,
+            "applications": applications,
+        },
     )

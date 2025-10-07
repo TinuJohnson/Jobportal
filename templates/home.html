@@ -3,7 +3,18 @@
 {% block title %}Home - Job Portal{% endblock %}
 
 {% block content %}
+<div class="navbar-nav  mb-3">
+    <div class="d-flex gap-4 justify-content-end">
+        <a class="btn btn-login btn-primary " href="{% url 'login' %}">
+            <i class="fas fa-sign-in-alt me-1"></i> Login
+        </a>
+        <a class="btn btn-register btn-primary" href="{% url 'register' %}">
+            <i class="fas fa-user-plus me-1"></i> Register
+        </a>
+    </div>
+</div>
 <div class="jumbotron bg-light p-5 rounded mb-4">
+    
     <div class="row align-items-center">
         <div class="col-md-8">
             <h1 class="display-4 fw-bold">Find Your Dream Job</h1>
@@ -54,17 +65,5 @@
     </div>
 </div>
 
-{% if not user.is_authenticated %}
-<div class="row mt-5">
-    <div class="col-12">
-        <div class="card bg-primary text-white">
-            <div class="card-body text-center py-5">
-                <h2 class="card-title">Ready to Get Started?</h2>
-                <p class="card-text lead">Join thousands of job seekers and employers already using our platform.</p>
-                <a href="{% url 'register' %}" class="btn btn-light btn-lg mt-3">Create Your Account</a>
-            </div>
-        </div>
-    </div>
-</div>
-{% endif %}
+
 {% endblock %}

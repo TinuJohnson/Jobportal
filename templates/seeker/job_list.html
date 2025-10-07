@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Indeed Jobs - Job Portal{% endblock %}
+{% block title %}Job Portal{% endblock %}
 
 {% block content %}
 <div class="container">
@@ -11,7 +11,10 @@
                 <div>
                     <h1>💼 Available Jobs</h1>
                 </div>
-                <span class="badge bg-warning text-dark fs-6">Live Data</span>
+                <form method="post" action="{% url 'logout' %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger text-white fs-6">Logout</button>
+                </form>
             </div>
 
             <!-- Search Box -->

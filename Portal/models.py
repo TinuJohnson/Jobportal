@@ -40,6 +40,14 @@ class Job(models.Model):
 
 
 class Application(models.Model):
+    STATUS_CHOICES = [
+        ("pending", "Pending"),
+        ("reviewed", "Reviewed"),
+        ("shortlisted", "Shortlisted"),
+        ("accepted", "Accepted"),
+        ("rejected", "Rejected"),
+    ]
+
     job = models.ForeignKey(Job, on_delete=models.CASCADE, related_name="applications")
     seeker = models.ForeignKey(
         User,
@@ -52,6 +60,7 @@ class Application(models.Model):
         upload_to="resumes/",
         validators=[FileExtensionValidator(["pdf", "doc", "docx"])],
     )
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
     applied_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -59,4 +68,4 @@ class Application(models.Model):
         ordering = ["-applied_at"]
 
     def __str__(self):
-        return f"{self.seeker.username} → {self.job.title}"
+        return f"{self.seeker.username} → {self.job.title} ({self.status})"

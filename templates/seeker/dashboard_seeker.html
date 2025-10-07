@@ -23,7 +23,7 @@
                                     <th>Job Title</th>
                                     <th>Company</th>
                                     <th>Applied Date</th>
-                                    <th>Status</th>
+                                    
                                 </tr>
                             </thead>
                             <tbody>
@@ -36,9 +36,17 @@
                                     </td>
                                     <td>{{ application.job.company }}</td>
                                     <td>{{ application.applied_at|date:"M d, Y" }}</td>
-                                    <td>
-                                        <span class="badge bg-warning text-dark">Pending</span>
-                                    </td>
+                                    <p><strong>Status:</strong> 
+                                        <span class="badge 
+                                            {% if application.status == 'pending' %}bg-warning
+                                            {% elif application.status == 'reviewed' %}bg-info
+                                            {% elif application.status == 'shortlisted' %}bg-primary
+                                            {% elif application.status == 'accepted' %}bg-success
+                                            {% elif application.status == 'rejected' %}bg-danger
+                                            {% else %}bg-secondary{% endif %}">
+                                            {{ application.status|title }}
+                                        </span>
+                                    </p>
                                 </tr>
                                 {% endfor %}
                             </tbody>
@@ -55,6 +63,13 @@
     </div>
 
     <div class="col-md-4">
+        <div class="d-flex justify-content-end align-items-center mb-4">
+            
+            <form method="post" action="{% url 'logout' %}" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger text-white fs-6">Logout</button>
+            </form>
+        </div>
         <div class="card">
             <div class="card-header">
                 <h5 class="card-title mb-0">Profile Summary</h5>

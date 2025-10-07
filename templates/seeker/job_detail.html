@@ -57,7 +57,7 @@
                         <a href="{% url 'view_applications' job.id %}" class="btn btn-outline-primary">
                             View Applications ({{ job.applications.count }})
                         </a>
-                        <a href="#" class="btn btn-outline-secondary">Edit Job</a>
+                        <a href="{% url 'edit_job' job.id %}" class="btn btn-outline-secondary">Edit Job</a>
                     </div>
                 </div>
                 {% endif %}
